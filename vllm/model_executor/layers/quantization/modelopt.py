@@ -1328,7 +1328,7 @@ class ModelOptNvFp4FusedMoE(FusedMoEMethodBase):
                 "Accuracy may be affected."
             )
 
-        w13_weight_scale_2 = layer.w13_weight_scale_2[:, 0]
+        w13_weight_scale_2 = layer.w13_weight_scale_2[:, 0].contiguous()
         layer.w13_weight_scale_2 = Parameter(w13_weight_scale_2, requires_grad=False)
 
         # Common processing for input scales and alphas
@@ -1457,6 +1457,10 @@ class ModelOptNvFp4FusedMoE(FusedMoEMethodBase):
             a2_gscale=layer.w2_input_scale_quant,
         )
 
+    @property
+    def supports_eplb(self) -> bool:
+        return True
+
     def apply(
         self,
         layer: torch.nn.Module,
@@ -1485,7 +1489,6 @@ class ModelOptNvFp4FusedMoE(FusedMoEMethodBase):
                 "EPLB not supported for `ModelOptNvFp4FusedMoE` yet."
             )
         assert activation == "silu", "Only SiLU activation is supported."
-
         if (
             self.allow_flashinfer
             and self.flashinfer_moe_backend == FlashinferMoeBackend.TENSORRT_LLM
