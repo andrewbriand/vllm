@@ -702,6 +702,7 @@ class EplbState:
                 num_models = torch.tensor(
                     [len(self.model_states)], dtype=torch.int32, device="cpu"
                 )
+                print("num models broadcast")
                 torch.distributed.broadcast(
                     num_models, group=get_ep_group().cpu_group, group_src=0
                 )
@@ -732,6 +733,7 @@ class EplbState:
                         dtype=torch.int32,
                         device="cpu",
                     )
+                    print("metadata broadcast")
                     torch.distributed.broadcast(
                         metadata, group=get_ep_group().cpu_group, group_src=0
                     )
@@ -739,6 +741,7 @@ class EplbState:
                 global_expert_load_window = logical_expert_load_window.sum(dim=0)
                 global_expert_load_windows.append(global_expert_load_window)
             # Perform all-reduce to get the expert load across all ranks for each model
+            print("expert load all reduce")
             global_expert_load_windows = self._allreduce_list(
                 global_expert_load_windows
             )
@@ -748,6 +751,7 @@ class EplbState:
                 ):
                     # (num_moe_layers, old_num_physical_experts)
                     old_global_expert_indices = eplb_model_state.physical_to_logical_map
+                    print("old_global_expert_indices broadcast")
                     torch.distributed.broadcast(
                         old_global_expert_indices, group=ep_group, group_src=0
                     )
@@ -804,6 +808,7 @@ class EplbState:
 
             if not eplb_model_state.is_async_enabled or is_profile:
                 # Update expert weights
+                print("rearrange expert weights inplace")
                 rearrange_expert_weights_inplace(
                     eplb_model_state.physical_to_logical_map,
                     new_physical_to_logical_map,
