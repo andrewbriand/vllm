@@ -1592,6 +1592,17 @@ environment_variables: dict[str, Callable[[], Any]] = {
     "VLLM_DEBUG_MFU_METRICS": lambda: bool(
         int(os.getenv("VLLM_DEBUG_MFU_METRICS", "0"))
     ),
+    # Disable logging of vLLM logo at server startup time.
+    "VLLM_DISABLE_LOG_LOGO": lambda: bool(int(os.getenv("VLLM_DISABLE_LOG_LOGO", "0"))),
+    # Disable PDL for LoRA, as enabling PDL with LoRA on SM100 causes
+    # Triton compilation to fail.
+    "VLLM_LORA_DISABLE_PDL": lambda: bool(int(os.getenv("VLLM_LORA_DISABLE_PDL", "0"))),
+    # Backend for EPLB expert weight communication
+    "VLLM_EPLB_COMMUNICATOR": env_with_choices(
+        "VLLM_EPLB_COMMUNICATOR",
+        "torch",
+        ["torch", "pynccl"],
+    ),
 }
 
 # --8<-- [end:env-vars-definition]
